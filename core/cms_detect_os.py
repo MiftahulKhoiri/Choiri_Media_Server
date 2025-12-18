@@ -2,7 +2,9 @@ import platform
 import os
 
 def detect():
-    system = platform.system().lower()
-    if os.path.exists("/data/data/com.termux/files/usr"):
+    # Termux detection
+    if os.path.exists("/data/data/com.termux/files/usr/bin"):
         return "termux"
-    return system
+
+    # OS umum
+    return platform.system().lower()
