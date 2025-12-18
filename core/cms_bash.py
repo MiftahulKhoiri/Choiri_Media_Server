@@ -3,9 +3,9 @@ from cms_detect_os import detect
 
 
 # ============================================================
-# Fungsi untuk menentukan BASE folder aplikasi CMS / BMS
+# Fungsi untuk menentukan BASE folder aplikasi CMS 
 # ============================================================
-def detect_bms_base():
+def detect_cms_base():
 
     # --------------------------------------------------------
     # 0. ENV OVERRIDE (PALING PRIORITAS)
@@ -41,7 +41,7 @@ def detect_bms_base():
     # --------------------------------------------------------
     # 3. WINDOWS
     # --------------------------------------------------------
-    # Folder BMS akan dibuat di HOME user
+    # Folder cmS akan dibuat di HOME user
     if system == "windows":
         return os.path.join(os.path.expanduser("~"), "BMS")
 
@@ -66,7 +66,7 @@ def detect_bms_base():
 # BASE PATH UTAMA APLIKASI
 # ============================================================
 # Semua folder lain akan mengikuti BASE ini
-BASE = detect_bms_base()
+BASE = detect_cms_base()
 
 
 # ============================================================
