@@ -1,21 +1,14 @@
+import os
 from cms_detect_os import detect
-import platform
-
-# ============================================================
-# Helper
-# ============================================================
-def is_termux():
-    return os.path.exists("/data/data/com.termux/files/usr/bin")
-
 
 # ============================================================
 # Deteksi BASE Folder
 # ============================================================
-def detect_bms_base():
+def detect_cms_base():
     system = detect()
 
     # 1. TERMUX
-    if is_termux():
+    if system == "termux":
         return "/data/data/com.termux/files/home/storage/downloads/BMS"
 
     # 2. ANDROID (non-Termux)
@@ -44,7 +37,7 @@ def detect_bms_base():
 # ============================================================
 # BASE PATH
 # ============================================================
-BASE = detect_bms_base()
+BASE = detect_cms_base()
 
 
 # ============================================================
@@ -64,11 +57,9 @@ LOG_PATH = os.path.join(LOG_FOLDER, "system.log")
 # ============================================================
 # AUTO CREATE FOLDER
 # ============================================================
-FOLDERS = [
+for folder in [
     BASE, DB_FOLDER, LOG_FOLDER,
     PICTURES_FOLDER, MUSIC_FOLDER,
     VIDEO_FOLDER, UPLOAD_FOLDER
-]
-
-for folder in FOLDERS:
+]:
     os.makedirs(folder, exist_ok=True)
