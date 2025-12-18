@@ -12,7 +12,7 @@ def is_termux():
 # Deteksi BASE Folder
 # ============================================================
 def detect_bms_base():
-    system = platform.system().lower()
+    system = detect()
 
     # 1. TERMUX
     if is_termux():
