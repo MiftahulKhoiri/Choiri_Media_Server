@@ -1,4 +1,4 @@
-from cms_detect_os import dtect
+from cms_detect_os import detect
 import platform
 
 # ============================================================
