@@ -27,7 +27,7 @@ def detect_cms_base():
     # 1. DETEKSI OS / ENVIRONMENT
     # --------------------------------------------------------
     # detect() mengembalikan string:
-    # "termux", "windows", "linux", "darwin"
+    # "linux Termux", "windows", "linux", "darwin"
     #
     system = detect()
 
@@ -35,7 +35,7 @@ def detect_cms_base():
     # 2. TERMUX
     # --------------------------------------------------------
     # Jika dijalankan di Android lewat Termux
-    if system == "termux":
+    if system == "linux Termux":
         return "/data/data/com.termux/files/home/storage/downloads/BMS"
 
     # --------------------------------------------------------
