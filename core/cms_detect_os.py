@@ -8,7 +8,7 @@ import os
 import platform
 
 
-def detect_os() -> str:
+def detect() -> str:
     """
     Mengembalikan string deskripsi OS/environment.
     """
