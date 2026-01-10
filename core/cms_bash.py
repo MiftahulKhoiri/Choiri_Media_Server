@@ -39,7 +39,7 @@ def detect_cms_base():
     # ========================================================
     # 5. LINUX (Raspberry Pi / Desktop / Server)
     # ========================================================
-    if system.startswith("linux"):
+    if system.startswith("linux" or "linux raspabery pi"):
         return os.path.join(home, "BMS")
 
     # ========================================================
