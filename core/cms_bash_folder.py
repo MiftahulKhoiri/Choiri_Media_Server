@@ -5,7 +5,7 @@ Mengikuti hasil detect() custom
 """
 
 import os
-from cms_detect_os import detect
+from core.cms_detect_os import detect
 
 
 # ============================================================
