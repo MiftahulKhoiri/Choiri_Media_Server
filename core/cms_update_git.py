@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+from packaging.version import Version
 
 from core.cms_detect_os import detect
 from core.cms_logger import get_logger
@@ -75,35 +76,42 @@ class GitAutoUpdater:
             return None
 
     def _get_latest_git_version(self):
-        """
-        Ambil versi Git terbaru TANPA clone repo
-        """
+    """
+    Ambil versi Git terbaru TANPA clone repo
+    Aman untuk tag non-numeric (rc, alpha, dll)
+    """
+    try:
+        out = self._cmd_out([
+            "git", "ls-remote",
+            "--tags", "--refs",
+            self.REPO_URL
+        ])
+    except Exception as e:
+        raise CMSDependencyError(
+            "Gagal mengambil versi Git terbaru"
+        ) from e
+
+    versions = []
+
+    for line in out.splitlines():
+        ref = line.split()[-1]
+        if not ref.startswith("refs/tags/v"):
+            continue
+
+        raw_version = ref.split("/")[-1][1:]  # hapus 'v'
+
         try:
-            out = self._cmd_out([
-                "git", "ls-remote",
-                "--tags", "--refs",
-                self.REPO_URL
-            ])
-        except Exception as e:
-            raise CMSDependencyError(
-                "Gagal mengambil versi Git terbaru"
-            ) from e
+            versions.append(Version(raw_version))
+        except Exception:
+            # skip tag aneh
+            continue
 
-        versions = []
-        for line in out.splitlines():
-            ref = line.split()[-1]
-            if ref.startswith("refs/tags/v"):
-                versions.append(ref.split("/")[-1][1:])
-
-        if not versions:
-            raise CMSDependencyError(
-                "Tidak ditemukan tag versi Git"
-            )
-
-        versions.sort(
-            key=lambda s: list(map(int, s.split(".")))
+    if not versions:
+        raise CMSDependencyError(
+            "Tidak ditemukan versi Git valid"
         )
-        return versions[-1]
+
+    return str(max(versions))
 
     def _is_latest(self, installed, latest):
         return installed == latest
