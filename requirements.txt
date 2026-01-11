@@ -1,1 +1,14 @@
- 
+# =========================
+# Web Framework
+# =========================
+Flask>=2.2,<3.0
+
+# =========================
+# Security & Auth (akan dipakai login/register)
+# =========================
+Werkzeug>=2.2
+
+# =========================
+# Packaging & Dependency (dipakai core)
+# =========================
+packaging>=23.0 
