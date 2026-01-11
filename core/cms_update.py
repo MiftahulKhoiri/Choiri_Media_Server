@@ -1,204 +1,179 @@
-#!/usr/bin/env python3
-"""
-Script untuk update Git dari repository khusus
-URL Repository: https://github.com/MiftahulKhoiri/Choiri_Media_Server.git
-"""
-
 import os
-import sys
 import shutil
 import subprocess
 import tempfile
-import requests
-import tarfile
-import zipfile
 from pathlib import Path
 
-class GitUpdater:
-    def __init__(self, repo_url=None):
-        self.repo_url = repo_url or "https://github.com/MiftahulKhoiri/Choiri_Media_Server.git"
-        self.temp_dir = tempfile.mkdtemp(prefix="git_update_")
-        self.current_version = self.get_current_git_version()
-        
-    def get_current_git_version(self):
-        """Mendapatkan versi Git saat ini"""
+
+class GitAutoUpdater:
+    """
+    Git Auto Updater
+    - Auto skip jika Git sudah versi terbaru
+    - Support Termux, Raspberry Pi, Linux
+    """
+
+    REPO_URL = "https://github.com/git/git.git"
+
+    def __init__(self, prefix=None, verbose=True):
+        self.verbose = verbose
+        self.is_termux = self._detect_termux()
+        self.prefix = prefix or self._detect_prefix()
+        self.workdir = Path(tempfile.mkdtemp(prefix="git_auto_"))
+        self.source_dir = self.workdir / "git"
+        self.current_version = self.get_installed_git_version()
+
+    # =====================================================
+    # UTIL
+    # =====================================================
+
+    def _log(self, msg):
+        if self.verbose:
+            print(msg)
+
+    def _run(self, cmd, cwd=None):
+        self._log(f">> {' '.join(cmd)}")
+        subprocess.run(cmd, cwd=cwd, check=True)
+
+    def _cmd_out(self, cmd):
+        return subprocess.check_output(cmd, text=True).strip()
+
+    # =====================================================
+    # ENV DETECTION
+    # =====================================================
+
+    def _detect_termux(self):
+        return os.environ.get("PREFIX", "").startswith("/data/data/com.termux")
+
+    def _detect_prefix(self):
+        return os.environ["PREFIX"] if self._detect_termux() else "/usr/local"
+
+    def _detect_distro(self):
+        if not os.path.exists("/etc/os-release"):
+            return "unknown"
+        with open("/etc/os-release") as f:
+            for line in f:
+                if line.startswith("ID="):
+                    return line.strip().split("=")[1].strip('"')
+        return "unknown"
+
+    # =====================================================
+    # VERSION
+    # =====================================================
+
+    def get_installed_git_version(self):
         try:
-            result = subprocess.run(['git', '--version'], 
-                                  capture_output=True, 
-                                  text=True, 
-                                  check=True)
-            version_line = result.stdout.strip()
-            version = version_line.split()[-1]
-            print(f"Versi Git saat ini: {version}")
-            return version
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            print("Git tidak terinstall atau tidak ditemukan")
+            out = self._cmd_out(["git", "--version"])
+            return out.split()[-1]
+        except Exception:
             return None
-    
+
+    def get_latest_git_version(self):
+        self._run([
+            "git", "clone",
+            "--depth", "1",
+            "--filter=blob:none",
+            self.REPO_URL,
+            str(self.source_dir)
+        ])
+
+        tags = self._cmd_out(
+            ["git", "-C", str(self.source_dir), "tag"]
+        ).splitlines()
+
+        versions = sorted(
+            (t[1:] for t in tags if t.startswith("v")),
+            key=lambda s: list(map(int, s.split(".")))
+        )
+
+        return versions[-1] if versions else None
+
+    def is_latest(self, installed, latest):
+        return installed == latest
+
+    # =====================================================
+    # DEPENDENCIES
+    # =====================================================
+
     def install_dependencies(self):
-        """Menginstall dependencies yang diperlukan"""
-        print("Menginstall dependencies untuk kompilasi Git...")
-        
-        distro = self.get_linux_distro()
-        
-        if distro in ['ubuntu', 'debian']:
-            cmd = [
-                'apt-get', 'update',
-                '&&', 'apt-get', 'install', '-y',
-                'build-essential', 'libssl-dev', 'libcurl4-gnutls-dev',
-                'libexpat1-dev', 'gettext', 'zlib1g-dev', 'autoconf',
-                'libz-dev', 'dh-autoreconf'
-            ]
-        elif distro in ['centos', 'fedora', 'rhel']:
-            cmd = [
-                'yum', 'groupinstall', '-y', 'Development Tools',
-                '&&', 'yum', 'install', '-y',
-                'openssl-devel', 'curl-devel', 'expat-devel',
-                'gettext-devel', 'zlib-devel', 'perl-ExtUtils-MakeMaker'
-            ]
-        else:
-            print(f"Distribusi {distro} tidak dikenali. Menggunakan perintah Ubuntu/Debian.")
-            cmd = [
-                'apt-get', 'update',
-                '&&', 'apt-get', 'install', '-y',
-                'build-essential', 'libssl-dev', 'libcurl4-gnutls-dev',
-                'libexpat1-dev', 'gettext', 'zlib1g-dev', 'autoconf'
-            ]
-        
-        try:
-            subprocess.run(' '.join(cmd), shell=True, check=True)
-            print("Dependencies berhasil diinstall")
-            return True
-        except subprocess.CalledProcessError as e:
-            print(f"Gagal menginstall dependencies: {e}")
-            return False
-    
-    def get_linux_distro(self):
-        """Mendeteksi distribusi Linux"""
-        try:
-            with open('/etc/os-release', 'r') as f:
-                content = f.read().lower()
-                if 'ubuntu' in content or 'debian' in content:
-                    return 'ubuntu'
-                elif 'centos' in content or 'rhel' in content:
-                    return 'centos'
-                elif 'fedora' in content:
-                    return 'fedora'
-                elif 'arch' in content:
-                    return 'arch'
-                else:
-                    return 'unknown'
-        except:
-            return 'unknown'
-    
-    def clone_and_compile_git(self):
-        """Clone dan compile Git dari repository"""
-        print(f"Mengclone repository dari: {self.repo_url}")
-        
-        repo_dir = os.path.join(self.temp_dir, "git_source")
-        
-        try:
-            # Clone repository
-            if os.path.exists(repo_dir):
-                print("Directory sudah ada, melakukan update...")
-                subprocess.run(['git', '-C', repo_dir, 'pull'], check=True)
-            else:
-                subprocess.run(['git', 'clone', self.repo_url, repo_dir], check=True)
-            
-            os.chdir(repo_dir)
-            
-            # Cek apakah ini repository Git source
-            if not os.path.exists('configure.ac') and not os.path.exists('Makefile'):
-                print("Repository tidak berisi source code Git yang valid")
-                
-                # Coba cari directory yang berisi source
-                for root, dirs, files in os.walk(repo_dir):
-                    if 'configure.ac' in files or 'Makefile' in files:
-                        os.chdir(root)
-                        print(f"Menemukan source di: {root}")
-                        break
-                else:
-                    print("Tidak ditemukan source code Git dalam repository")
-                    return False
-            
-            # Compile Git
-            print("Mengkompilasi Git...")
-            
-            compile_steps = [
-                ['make', 'configure'],
-                ['./configure', '--prefix=/usr/local'],
-                ['make', 'all', '-j', str(os.cpu_count())],
-                ['sudo', 'make', 'install']
-            ]
-            
-            for step in compile_steps:
-                print(f"Menjalankan: {' '.join(step)}")
-                subprocess.run(step, check=True)
-            
-            # Verifikasi
-            result = subprocess.run(['git', '--version'], 
-                                  capture_output=True, 
-                                  text=True, 
-                                  check=True)
-            new_version = result.stdout.strip()
-            print(f"Git berhasil diupdate: {new_version}")
-            
-            return True
-            
-        except subprocess.CalledProcessError as e:
-            print(f"Error saat mengkompilasi Git: {e}")
-            return False
-        except Exception as e:
-            print(f"Error: {e}")
-            return False
-    
+        if self.is_termux:
+            self._run([
+                "pkg", "install", "-y",
+                "git", "make", "clang",
+                "openssl", "libcurl",
+                "zlib", "gettext"
+            ])
+            return
+
+        distro = self._detect_distro()
+
+        if distro in ("ubuntu", "debian", "raspbian", "linuxmint", "pop"):
+            self._run(["apt-get", "update"])
+            self._run([
+                "apt-get", "install", "-y",
+                "build-essential", "libssl-dev",
+                "libcurl4-gnutls-dev", "libexpat1-dev",
+                "gettext", "zlib1g-dev", "autoconf"
+            ])
+            return
+
+        raise RuntimeError(f"Distro tidak didukung: {distro}")
+
+    # =====================================================
+    # BUILD
+    # =====================================================
+
+    def build_and_install(self):
+        if (self.source_dir / "configure.ac").exists():
+            self._run(["make", "configure"], cwd=self.source_dir)
+
+        self._run(["./configure", f"--prefix={self.prefix}"], cwd=self.source_dir)
+        self._run(["make", f"-j{os.cpu_count()}"], cwd=self.source_dir)
+        self._run(["make", "install"], cwd=self.source_dir)
+
+    # =====================================================
+    # CLEANUP
+    # =====================================================
+
     def cleanup(self):
-        """Membersihkan file temporary"""
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
-            print(f"Directory temporary dihapus: {self.temp_dir}")
-    
-    def run(self):
-        """Menjalankan proses update"""
-        print("=" * 50)
-        print("UPDATE GIT DARI REPOSITORY KHUSUS")
-        print("=" * 50)
-        
-        if not self.install_dependencies():
-            print("Gagal menginstall dependencies")
-            return False
-        
-        if not self.clone_and_compile_git():
-            print("Gagal mengupdate Git")
+        if self.workdir.exists():
+            shutil.rmtree(self.workdir)
+
+    # =====================================================
+    # PUBLIC API
+    # =====================================================
+
+    def update(self):
+        """
+        Jalankan update Git.
+        Return dict status agar mudah dipakai di aplikasi lain.
+        """
+        result = {
+            "installed": self.current_version,
+            "latest": None,
+            "updated": False,
+            "prefix": self.prefix
+        }
+
+        self._log("=== Git Auto Updater ===")
+        self._log(f"Installed Git : {self.current_version or 'not installed'}")
+
+        latest = self.get_latest_git_version()
+        result["latest"] = latest
+        self._log(f"Latest Git    : {latest}")
+
+        if self.current_version and self.is_latest(self.current_version, latest):
+            self._log("✔ Git sudah versi terbaru (skip)")
             self.cleanup()
-            return False
-        
+            return result
+
+        self._log("↻ Update diperlukan")
+        self.install_dependencies()
+        self.build_and_install()
+
+        new_ver = self._cmd_out([f"{self.prefix}/bin/git", "--version"])
+        result["updated"] = True
+        result["new_version"] = new_ver
+
+        self._log(f"✔ Git berhasil diupdate → {new_ver}")
         self.cleanup()
-        print("Proses update selesai!")
-        return True
-
-def main():
-    # URL repository khusus
-    custom_repo_url = "https://github.com/MiftahulKhoiri/Choiri_Media_Server.git"
-    
-    # Buat instance dan jalankan updater
-    updater = GitUpdater(custom_repo_url)
-    
-    # Jalankan update
-    success = updater.run()
-    
-    if success:
-        print("✅ Git berhasil diupdate!")
-        sys.exit(0)
-    else:
-        print("❌ Gagal mengupdate Git")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    # Cek apakah dijalankan sebagai root/sudo
-    if os.geteuid() != 0:
-        print("Script perlu dijalankan dengan hak akses root (sudo)")
-        print("Gunakan: sudo python3 update_git.py")
-        sys.exit(1)
-    
-    main()
+        return result
