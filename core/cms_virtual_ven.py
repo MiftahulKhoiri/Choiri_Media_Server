@@ -1,11 +1,6 @@
-"""cms_virtual_ven.py
-Module utilitas Virtual Environment Python 3
-
-Fungsi:
-- cek virtual env
-- buat virtual env
-- aktifkan virtual env (secara subprocess / instruksi)
-- matikan virtual env
+"""
+cms_virtual_ven.py
+Manajemen Python Virtual Environment CMS
 """
 
 import os
@@ -13,114 +8,116 @@ import sys
 import subprocess
 from pathlib import Path
 
+from core.cms_logger import get_logger
+from core.cms_errors import CMSVirtualEnvError
+
+# =====================================================
+# LOGGER
+# =====================================================
+
+log = get_logger("CMS_VENV")
+
 
 class VirtualVenv:
-    def __init__(self, venv_path="venv"):
-        self.venv_path = Path(venv_path).resolve()
-        self.bin_dir = self.venv_path / ("Scripts" if os.name == "nt" else "bin")
-        self.python_bin = self.bin_dir / ("python.exe" if os.name == "nt" else "python")
+    """
+    Manager Virtual Environment Python
+    """
 
-    # =====================================================
-    # FUNGSI 1: CEK APAKAH SEDANG DI VENV
-    # =====================================================
+    def __init__(self, venv_path):
+        self.venv_path = Path(venv_path).resolve()
+        self.bin_dir = self.venv_path / (
+            "Scripts" if os.name == "nt" else "bin"
+        )
+        self.python_bin = self.bin_dir / (
+            "python.exe" if os.name == "nt" else "python"
+        )
+
+    # =================================================
+    # UTIL
+    # =================================================
 
     @staticmethod
-    def is_venv_active():
+    def is_active() -> bool:
         """
-        Return True jika Python saat ini berjalan di dalam virtualenv
+        Cek apakah Python saat ini berjalan di dalam venv
         """
         return (
             hasattr(sys, "real_prefix")
-            or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
+            or (
+                hasattr(sys, "base_prefix")
+                and sys.base_prefix != sys.prefix
+            )
         )
 
-    # =====================================================
-    # FUNGSI 2: BUAT VIRTUAL ENV
-    # =====================================================
+    # =================================================
+    # CREATE
+    # =================================================
 
-    def create_venv(self, with_pip=True):
+    def create_venv(self):
         """
-        Membuat virtual environment
+        Membuat virtualenv jika belum ada
         """
         if self.venv_path.exists():
-            return {
-                "created": False,
-                "path": str(self.venv_path),
-                "reason": "virtual env sudah ada"
-            }
+            log.info("Virtualenv sudah ada (skip)")
+            return
 
-        cmd = [
-            sys.executable,
-            "-m", "venv",
-            str(self.venv_path)
-        ]
+        log.info(f"Membuat virtualenv di {self.venv_path}")
 
-        if with_pip:
-            cmd.append("--upgrade-deps")
+        try:
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "venv",
+                    str(self.venv_path),
+                ],
+                check=True,
+            )
+        except Exception as e:
+            raise CMSVirtualEnvError(
+                f"Gagal membuat virtualenv: {e}"
+            ) from e
 
-        subprocess.run(cmd, check=True)
+        if not self.python_bin.exists():
+            raise CMSVirtualEnvError(
+                "Virtualenv dibuat tapi python binary tidak ditemukan"
+            )
 
-        return {
-            "created": True,
-            "path": str(self.venv_path)
-        }
+        log.info("Virtualenv berhasil dibuat")
 
-    # =====================================================
-    # FUNGSI 3: AKTIFKAN VENV (REALISTIS)
-    # =====================================================
+    # =================================================
+    # RUN IN VENV
+    # =================================================
 
-    def activate_info(self):
+    def run(self, command: list):
         """
-        Mengembalikan command yang harus dijalankan user
-        """
-        if os.name == "nt":
-            return f"{self.bin_dir}\\activate"
-        return f"source {self.bin_dir}/activate"
-
-    def run_in_venv(self, command):
-        """
-        Menjalankan perintah di dalam venv TANPA activate shell
+        Menjalankan command di dalam environment venv
+        (tanpa activate shell)
         """
         if not self.python_bin.exists():
-            raise FileNotFoundError("Virtual env belum dibuat")
+            raise CMSVirtualEnvError(
+                "Virtualenv belum tersedia"
+            )
 
         env = os.environ.copy()
         env["VIRTUAL_ENV"] = str(self.venv_path)
-        env["PATH"] = f"{self.bin_dir}{os.pathsep}{env['PATH']}"
-
-        return subprocess.run(
-            command,
-            env=env,
-            check=True
+        env["PATH"] = (
+            str(self.bin_dir)
+            + os.pathsep
+            + env.get("PATH", "")
         )
 
-    # =====================================================
-    # FUNGSI 4: MATIKAN VENV
-    # =====================================================
+        log.debug(
+            f"Run in venv: {' '.join(command)}"
+        )
 
-    @staticmethod
-    def deactivate_info():
-        """
-        Virtual env tidak bisa dimatikan dari Python.
-        Ini hanya instruksi.
-        """
-        return "Ketik 'deactivate' di shell untuk keluar dari virtualenv"
-
-
-# =====================================================
-# CONTOH PAKAI JIKA DIJALANKAN LANGSUNG
-# =====================================================
-
-if __name__ == "__main__":
-    venv = VirtualVenv("venv")
-
-    print("Apakah sedang di venv?:", VirtualVenv.is_venv_active())
-
-    result = venv.create_venv()
-    print("Create venv:", result)
-
-    print("Cara activate:")
-    print(venv.activate_info())
-
-    print("Cara deactivate:")
-    print(VirtualVenv.deactivate_info())
+        try:
+            subprocess.run(
+                command,
+                env=env,
+                check=True,
+            )
+        except Exception as e:
+            raise CMSVirtualEnvError(
+                f"Gagal menjalankan perintah di venv: {e}"
+            ) from e
