@@ -1,7 +1,7 @@
 """
-cms_detec_os.py
+cms_detect_os.py
 Modul pendeteksi OS dan environment lintas platform.
-Kompatibel: Termux, Raspberry Pi, Linux PC, Windows, macOS, dll.
+Single Source of Truth untuk seluruh CMS.
 """
 
 import os
@@ -10,7 +10,7 @@ import platform
 
 def detect() -> str:
     """
-    Mengembalikan string deskripsi OS/environment.
+    Mengembalikan string OS/environment terstandarisasi.
     """
 
     system = platform.system().lower()
@@ -21,7 +21,13 @@ def detect() -> str:
     # WINDOWS
     # ===============================
     if system == "windows":
-        return "linux windows"
+        return "Windows"
+
+    # ===============================
+    # MACOS
+    # ===============================
+    if system == "darwin":
+        return "macOS"
 
     # ===============================
     # LINUX FAMILY
@@ -29,47 +35,40 @@ def detect() -> str:
     if system == "linux":
 
         # ---- TERMUX ----
-        # Termux selalu punya PREFIX dengan path com.termux
         prefix = os.environ.get("PREFIX", "")
         if "com.termux" in prefix:
-            return "linux Termux"
+            return "Linux Termux"
 
         # ---- RASPBERRY PI ----
         try:
             with open("/proc/cpuinfo", "r") as f:
                 cpuinfo = f.read().lower()
-                if "raspberry pi" in cpuinfo or "bcm" in cpuinfo:
-                    return "linux raspabery pi"
+                if "raspberry pi" in cpuinfo or "bcm270" in cpuinfo or "bcm271" in cpuinfo:
+                    return "Linux RaspberryPi"
         except Exception:
             pass
 
         # ---- AMD PC ----
         if "amd" in processor or "amd" in machine:
-            return "linux AMD"
+            return "Linux AMD"
 
         # ---- GENERIC LINUX ----
-        return "linux generic"
-
-    # ===============================
-    # MACOS
-    # ===============================
-    if system == "darwin":
-        return "macos"
+        return "Linux Generic"
 
     # ===============================
     # UNKNOWN
     # ===============================
-    return f"unknown os ({system})"
+    return "Unknown"
 
 
 def detect_detail() -> dict:
     """
     Mengembalikan detail OS dalam bentuk dictionary.
-    Cocok untuk logging atau JSON.
+    Aman untuk logging / JSON.
     """
 
     return {
-        "os_result": detect_os(),
+        "os_result": detect(),
         "system": platform.system(),
         "release": platform.release(),
         "version": platform.version(),
