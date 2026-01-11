@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<div class="card">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="logo" alt="Logo">
+
+    <h1>Choiri Media Server</h1>
+    <p>Simple CMS built with Flask</p>
+
+    <div class="actions">
+        <a href="/login" class="btn btn-primary">Login</a>
+        <a href="/register" class="btn btn-secondary">Register</a>
+    </div>
+</div>
+{% endblock %}
