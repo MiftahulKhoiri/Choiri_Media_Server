@@ -1,0 +1,52 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 320px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.logo {
+    width: 100px;
+    margin-bottom: 15px;
+}
+
+.actions {
+    margin-top: 20px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 15px;
+    margin: 5px;
+    text-decoration: none;
+    color: white;
+    border-radius: 4px;
+}
+
+.btn-primary {
+    background: #007bff;
+}
+
+.btn-secondary {
+    background: #28a745;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+}
