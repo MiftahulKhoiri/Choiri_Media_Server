@@ -111,8 +111,11 @@ def main():
     log.info("Menjalankan Web Server Flask")
 
     env = os.environ.copy()
-    # pastikan root project ada di PYTHONPATH
+
+    # 🔑 INI KUNCI UTAMA (FIX ERROR core)
     env["PYTHONPATH"] = str(BASE_DIR)
+
+    # virtualenv context
     env["VIRTUAL_ENV"] = str(VENV_DIR)
     env["PATH"] = (
         str(VENV_PYTHON.parent)
