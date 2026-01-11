@@ -1,5 +1,5 @@
 """
-requirements_installer.py
+cms_requirements_installer.py
 Module installer requirements.txt yang cerdas & aman
 """
 
