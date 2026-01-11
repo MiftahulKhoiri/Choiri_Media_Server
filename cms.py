@@ -111,6 +111,8 @@ def main():
     log.info("Menjalankan Web Server Flask")
 
     env = os.environ.copy()
+    # pastikan root project ada di PYTHONPATH
+    env["PYTHONPATH"] = str(BASE_DIR)
     env["VIRTUAL_ENV"] = str(VENV_DIR)
     env["PATH"] = (
         str(VENV_PYTHON.parent)
