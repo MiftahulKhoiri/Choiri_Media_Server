@@ -55,3 +55,22 @@ def logout_user():
     session.clear()
     if username:
         log_logout(username)
+
+def bootstrap_root_user():
+    """
+    Buat user root pertama jika belum ada
+    """
+    root = get_user_by_username("root")
+    if root:
+        return
+
+    password = "root123"  # nanti WAJIB diganti
+    password_hash = generate_password_hash(password)
+    created_at = datetime.utcnow().isoformat()
+
+    create_user("root", password_hash, "root", created_at)
+
+    print("⚠ ROOT USER CREATED")
+    print("username: root")
+    print("password: root123")
+    print("SEGERA GANTI PASSWORD!")
