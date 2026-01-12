@@ -2,7 +2,7 @@
 auth_service.py
 Business logic autentikasi
 """
-
+import os
 from datetime import datetime
 from werkzeug.security import (
     generate_password_hash,
@@ -17,7 +17,7 @@ from app.repositories.user_repository import (
 
 from app.services.session_service import login_session
 from app.services.audit_service import log_login, log_logout
-
+from core.cms_bash_folder import DB_FOLDER
 
 def init_auth():
     """
@@ -58,19 +58,43 @@ def logout_user():
 
 def bootstrap_root_user():
     """
-    Buat user root pertama jika belum ada
+    Membuat user root pertama (HANYA SEKALI)
+    - Skip jika root sudah ada
+    - Password WAJIB dari environment variable
+    - Aman untuk production
     """
-    root = get_user_by_username("root")
-    if root:
+
+    # -------------------------------------------------
+    # 1️⃣ SKIP JIKA ROOT SUDAH ADA (IDEMPOTENT)
+    # -------------------------------------------------
+    if get_user_by_username("root"):
         return
 
-    password = "root123"  # nanti WAJIB diganti
+    # -------------------------------------------------
+    # 2️⃣ AMBIL PASSWORD DARI ENV (BUKAN HARDCODE)
+    # -------------------------------------------------
+    password = os.environ.get("CMS_ROOT_PASSWORD")
+    if not password:
+        raise RuntimeError(
+            "CMS_ROOT_PASSWORD belum diset. "
+            "Set environment variable terlebih dahulu."
+        )
+
+    # -------------------------------------------------
+    # 3️⃣ CREATE ROOT USER
+    # -------------------------------------------------
     password_hash = generate_password_hash(password)
     created_at = datetime.utcnow().isoformat()
 
-    create_user("root", password_hash, "root", created_at)
+    create_user(
+        username="root",
+        password_hash=password_hash,
+        role="root",
+        created_at=created_at
+    )
 
-    print("⚠ ROOT USER CREATED")
-    print("username: root")
-    print("password: root123")
-    print("SEGERA GANTI PASSWORD!")
+    # -------------------------------------------------
+    # 4️⃣ LOG BOOTSTRAP (TANPA CETAK PASSWORD)
+    # -------------------------------------------------
+    print("✔ ROOT USER berhasil dibuat")
+    print("⚠ Segera ganti password root setelah login pertama")
