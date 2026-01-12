@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Dashboard</h2>
+
+    <p>Selamat datang, <strong>{{ user }}</strong></p>
+
+    {% if is_root %}
+        <p><b>Role:</b> ROOT / ADMIN</p>
+        <a href="#">Admin Panel</a>
+    {% else %}
+        <p><b>Role:</b> USER</p>
+    {% endif %}
+
+    <br>
+    <a href="/logout" class="btn btn-secondary">Logout</a>
+</div>
+{% endblock %}
