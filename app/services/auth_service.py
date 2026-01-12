@@ -58,30 +58,46 @@ def logout_user():
 
 def bootstrap_root_user():
     """
-    Membuat user root pertama (HANYA SEKALI)
+    Membuat user root pertama kali
     - Skip jika root sudah ada
-    - Password WAJIB dari environment variable
-    - Aman untuk production
+    - Password diminta via prompt (aman)
+    - Hanya dijalankan sekali
     """
 
     # -------------------------------------------------
-    # 1️⃣ SKIP JIKA ROOT SUDAH ADA (IDEMPOTENT)
+    # 1️⃣ SKIP JIKA ROOT SUDAH ADA
     # -------------------------------------------------
     if get_user_by_username("root"):
         return
 
-    # -------------------------------------------------
-    # 2️⃣ AMBIL PASSWORD DARI ENV (BUKAN HARDCODE)
-    # -------------------------------------------------
-    password = os.environ.get("CMS_ROOT_PASSWORD")
-    if not password:
-        raise RuntimeError(
-            "CMS_ROOT_PASSWORD belum diset. "
-            "Set environment variable terlebih dahulu."
-        )
+    print("=" * 50)
+    print("⚠  ROOT USER BELUM ADA")
+    print("Buat password untuk user ROOT (admin)")
+    print("=" * 50)
 
     # -------------------------------------------------
-    # 3️⃣ CREATE ROOT USER
+    # 2️⃣ INPUT PASSWORD (AMAN, TIDAK TERLIHAT)
+    # -------------------------------------------------
+    while True:
+        password = getpass("Masukkan password root: ")
+        confirm = getpass("Ulangi password root   : ")
+
+        if not password:
+            print("❌ Password tidak boleh kosong")
+            continue
+
+        if password != confirm:
+            print("❌ Password tidak cocok, ulangi")
+            continue
+
+        if len(password) < 8:
+            print("❌ Password minimal 8 karakter")
+            continue
+
+        break
+
+    # -------------------------------------------------
+    # 3️⃣ BUAT USER ROOT
     # -------------------------------------------------
     password_hash = generate_password_hash(password)
     created_at = datetime.utcnow().isoformat()
@@ -93,8 +109,6 @@ def bootstrap_root_user():
         created_at=created_at
     )
 
-    # -------------------------------------------------
-    # 4️⃣ LOG BOOTSTRAP (TANPA CETAK PASSWORD)
-    # -------------------------------------------------
     print("✔ ROOT USER berhasil dibuat")
-    print("⚠ Segera ganti password root setelah login pertama")
+    print("✔ Simpan password dengan aman")
+    print("✔ Login menggunakan username: root")
