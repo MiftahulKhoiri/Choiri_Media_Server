@@ -16,6 +16,7 @@ from app.repositories.user_repository import (
 )
 
 from app.services.session_service import login_session
+from app.services.audit_service import log_login, log_logout
 
 
 def init_auth():
@@ -46,4 +47,5 @@ def login_user(username) -> bool:
         return False
 
     login_session(user.username, user.role)
-    return True 
+    log_login(user.username)
+    return True
