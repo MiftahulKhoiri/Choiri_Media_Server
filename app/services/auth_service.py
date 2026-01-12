@@ -113,3 +113,7 @@ def bootstrap_root_user():
     print("✔ ROOT USER berhasil dibuat")
     print("✔ Simpan password dengan aman")
     print("✔ Login menggunakan username: root")
+
+def must_change_password(username):
+    user = get_user_by_username(username)
+    return user.must_change_password == 1
