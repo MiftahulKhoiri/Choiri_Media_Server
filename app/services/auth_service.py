@@ -103,10 +103,11 @@ def bootstrap_root_user():
     created_at = datetime.utcnow().isoformat()
 
     create_user(
-        username="root",
-        password_hash=password_hash,
-        role="root",
-        created_at=created_at
+       username="root",
+       password_hash=password_hash,
+       role="root",
+       created_at=created_at,
+       must_change_password=1
     )
 
     print("✔ ROOT USER berhasil dibuat")
