@@ -49,6 +49,7 @@ def create_app():
     # -------------------------------------------------
     app.register_blueprint(web_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(dashboard_bp)
 
     return app
 
