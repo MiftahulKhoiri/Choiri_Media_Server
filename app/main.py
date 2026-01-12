@@ -10,7 +10,7 @@ from core.cms_bootstrap import bootstrap_system
 # SERVICES
 # =====================================================
 
-from app.services.auth_service import init_auth
+from app.services.auth_service import init_auth, bootstrap_root_user
 
 # =====================================================
 # ROUTES
@@ -43,6 +43,7 @@ def create_app():
     # INIT AUTH SYSTEM (DB, TABLE)
     # -------------------------------------------------
     init_auth()
+    bootstrap_root_user()
 
     # -------------------------------------------------
     # REGISTER BLUEPRINTS
