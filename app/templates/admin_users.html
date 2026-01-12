@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Admin - Users{% endblock %}
+
+{% block content %}
+<h2>User Management</h2>
+
+<table border="1" width="100%">
+<tr>
+    <th>Username</th>
+    <th>Role</th>
+    <th>Action</th>
+</tr>
+
+{% for u in users %}
+<tr>
+    <td>{{ u[1] }}</td>
+    <td>{{ u[2] }}</td>
+    <td>
+        {% if u[1] != 'root' %}
+            <a href="/admin/delete/{{ u[1] }}">Delete</a>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}
