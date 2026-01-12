@@ -49,3 +49,9 @@ def login_user(username) -> bool:
     login_session(user.username, user.role)
     log_login(user.username)
     return True
+
+def logout_user():
+    username = session.get("user")
+    session.clear()
+    if username:
+        log_logout(username)
