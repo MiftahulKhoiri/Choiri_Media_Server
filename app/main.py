@@ -1,21 +1,60 @@
 from flask import Flask
+
+# =====================================================
+# CORE BOOTSTRAP
+# =====================================================
+
 from core.cms_bootstrap import bootstrap_system
+
+# =====================================================
+# SERVICES
+# =====================================================
+
+from app.services.auth_service import init_auth
+
+# =====================================================
+# ROUTES
+# =====================================================
+
+from app.routes.web import web_bp
+from app.routes.auth_routes import auth_bp
+
+
+# =====================================================
+# APP FACTORY
+# =====================================================
 
 def create_app():
     app = Flask(__name__)
 
-    # secret key (nanti bisa pindah ke config)
+    # -------------------------------------------------
+    # SECRET KEY (NANTI PINDAH KE CONFIG)
+    # -------------------------------------------------
     app.config["SECRET_KEY"] = "dev-secret-key"
 
-    # bootstrap core CMS
+    # -------------------------------------------------
+    # BOOTSTRAP CORE SYSTEM
+    # (folder, git, venv, dll)
+    # -------------------------------------------------
     bootstrap_system()
 
-    # register routes
-    from app.routes.web import web_bp
+    # -------------------------------------------------
+    # INIT AUTH SYSTEM (DB, TABLE)
+    # -------------------------------------------------
+    init_auth()
+
+    # -------------------------------------------------
+    # REGISTER BLUEPRINTS
+    # -------------------------------------------------
     app.register_blueprint(web_bp)
+    app.register_blueprint(auth_bp)
 
     return app
 
+
+# =====================================================
+# ENTRY POINT (DEV MODE)
+# =====================================================
 
 if __name__ == "__main__":
     app = create_app()
