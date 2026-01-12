@@ -46,4 +46,4 @@ def login_user(username) -> bool:
         return False
 
     login_session(user.username, user.role)
-    return True
+    return True 
