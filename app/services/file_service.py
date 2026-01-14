@@ -102,3 +102,36 @@ def rename_user_file(username, old, new):
         raise ValueError("Nama file sudah ada")
 
     os.rename(old_path, new_path)
+
+def get_user_subdir(username, subdir=""):
+    base = os.path.join(UPLOAD_FOLDER, "users", username)
+    path = os.path.join(base, subdir)
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def list_user_files(username, subdir=""):
+    folder = get_user_subdir(username, subdir)
+    return sorted(os.listdir(folder))
+
+
+def save_user_file(file_storage, username, subdir=""):
+    if not allowed_file(file_storage.filename):
+        raise ValueError("Tipe file tidak diizinkan")
+
+    file_storage.stream.seek(0, os.SEEK_END)
+    size = file_storage.stream.tell()
+    file_storage.stream.seek(0)
+
+    if size > MAX_FILE_SIZE:
+        raise ValueError("Ukuran file terlalu besar")
+
+    filename = secure_filename(file_storage.filename)
+    folder = get_user_subdir(username, subdir)
+    path = os.path.join(folder, filename)
+
+    if os.path.exists(path):
+        raise ValueError("File sudah ada")
+
+    file_storage.save(path)
+    return filename
