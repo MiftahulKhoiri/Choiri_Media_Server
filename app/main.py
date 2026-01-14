@@ -20,7 +20,8 @@ from app.routes.web import web_bp
 from app.routes.auth_routes import auth_bp
 from app.routes.file_routes import file_bp
 from app.routes.dashboard_routes import dashboard_bp
-
+from app.routes.api_routes import api_bp
+from app.services.api_token_service import init_api_token
 
 
 # =====================================================
