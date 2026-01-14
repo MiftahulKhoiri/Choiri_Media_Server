@@ -53,3 +53,15 @@ def admin_files():
         "admin_files.html",
         files=list_all_files()
     )
+
+@file_bp.route("/preview/<filename>")
+@login_required
+def preview_file(filename):
+    username = current_user()
+    directory = get_user_upload_dir(username)
+
+    return send_from_directory(
+        directory,
+        filename,
+        as_attachment=False
+    )
