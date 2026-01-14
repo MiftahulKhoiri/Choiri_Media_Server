@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect
 
 from app.services.auth_decorators import root_required
+from app.services.audit_reader_service import read_auth_logs
+
 from app.repositories.user_repository import (
     list_users,
     delete_user,
@@ -55,3 +57,11 @@ def add_user():
             flash(str(e), "error")
 
     return render_template("admin_add_user.html")
+
+@admin_bp.route("/login-history")
+@root_required
+def login_history():
+    return render_template(
+        "admin_login_history.html",
+        logs=read_auth_logs()
+    )
