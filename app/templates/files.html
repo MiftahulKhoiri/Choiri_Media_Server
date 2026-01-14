@@ -10,6 +10,12 @@
   {% endfor %}
 {% endwith %}
 
+<form method="get">
+    <input type="text" name="dir" placeholder="Folder (opsional)"
+           value="{{ subdir }}">
+    <button>Buka Folder</button>
+</form>
+
 <form method="post" enctype="multipart/form-data">
     <input type="file" name="file" required>
     <button class="btn btn-primary">Upload</button>
