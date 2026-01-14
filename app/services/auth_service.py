@@ -47,7 +47,7 @@ def login_user(username) -> bool:
         return False
 
     login_session(user.username, user.role)
-    log_login(user.username)
+    log_login(user.username, request.remote_addr)
     return True
 
 def logout_user():
