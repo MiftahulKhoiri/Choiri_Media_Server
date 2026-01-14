@@ -11,6 +11,7 @@ from core.cms_bootstrap import bootstrap_system
 # =====================================================
 
 from app.services.auth_service import init_auth, bootstrap_root_user
+from app.services.api_token_service import init_api_token
 
 # =====================================================
 # ROUTES
@@ -21,7 +22,6 @@ from app.routes.auth_routes import auth_bp
 from app.routes.file_routes import file_bp
 from app.routes.dashboard_routes import dashboard_bp
 from app.routes.api_routes import api_bp
-from app.services.api_token_service import init_api_token
 
 
 # =====================================================
@@ -47,6 +47,7 @@ def create_app():
     # -------------------------------------------------
     init_auth()
     bootstrap_root_user()
+    init_api_token()
 
     # -------------------------------------------------
     # REGISTER BLUEPRINTS
@@ -55,6 +56,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(file_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(api_bp)
 
     return app
 
