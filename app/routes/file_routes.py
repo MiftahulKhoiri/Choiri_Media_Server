@@ -19,23 +19,24 @@ file_bp = Blueprint("files", __name__, url_prefix="/files")
 @login_required
 def user_files():
     username = current_user()
+    subdir = request.args.get("dir", "")
 
     if request.method == "POST":
         file = request.files.get("file")
-        if not file:
-            flash("Tidak ada file dipilih", "error")
-            return redirect("/files")
-
         try:
-            save_user_file(file, username)
+            save_user_file(file, username, subdir)
             flash("File berhasil diupload", "success")
-        except ValueError as e:
+        except Exception as e:
             flash(str(e), "error")
 
-        return redirect("/files")
+        return redirect(f"/files?dir={subdir}")
 
-    files = list_user_files(username)
-    return render_template("files.html", files=files)
+    files = list_user_files(username, subdir)
+    return render_template(
+        "files.html",
+        files=files,
+        subdir=subdir
+    )
 
 
 @file_bp.route("/download/<filename>")
