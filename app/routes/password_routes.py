@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect
+from flask import Blueprint, request, render_template, redirect, flash
 from werkzeug.security import generate_password_hash
 
 from app.services.auth_decorators import login_required
@@ -12,14 +12,26 @@ password_bp = Blueprint("password", __name__)
 @login_required
 def change_password():
     if request.method == "POST":
-        password_hash = generate_password_hash(
-            request.form["password"]
-        )
+        password = request.form["password"]
+        confirm = request.form["confirm"]
+
+        if len(password) < 8:
+            flash("Password minimal 8 karakter", "error")
+            return redirect("/change-password")
+
+        if password != confirm:
+            flash("Password tidak cocok", "error")
+            return redirect("/change-password")
+
+        password_hash = generate_password_hash(password)
+
         update_password(
             current_user(),
             password_hash,
             force_change=0
         )
+
+        flash("Password berhasil diganti", "success")
         return redirect("/dashboard")
 
     return render_template("change_password.html")
