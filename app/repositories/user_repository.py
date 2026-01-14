@@ -33,21 +33,33 @@ def init_user_table():
     conn.close()
 
 
-def create_user(username, password_hash, role, created_at):
+def create_user(
+    username,
+    password_hash,
+    role,
+    created_at,
+    must_change_password=0
+):
     conn = _get_db()
     cur = conn.cursor()
 
     cur.execute(
         """
-        INSERT INTO users (username, password_hash, role, created_at)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO users
+        (username, password_hash, role, must_change_password, created_at)
+        VALUES (?, ?, ?, ?, ?)
         """,
-        (username, password_hash, role, created_at)
+        (
+            username,
+            password_hash,
+            role,
+            must_change_password,
+            created_at
+        )
     )
 
     conn.commit()
     conn.close()
-
 
 def get_user_by_username(username) -> Optional[User]:
     conn = _get_db()
