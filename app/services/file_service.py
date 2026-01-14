@@ -71,3 +71,8 @@ def list_all_files():
             result[user] = os.listdir(user_path)
 
     return result
+
+def can_access_file(request_user, owner_user, is_root):
+    if is_root:
+        return True
+    return request_user == owner_user
