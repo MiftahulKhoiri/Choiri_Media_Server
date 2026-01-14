@@ -13,21 +13,37 @@ from app.services.session_service import (
 
 auth_bp = Blueprint("auth", __name__)
 
-
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        if verify_login(
-            request.form["username"],
-            request.form["password"]
-        ):
-            login_user(request.form["username"])
+        username = request.form["username"]
+        password = request.form["password"]
+        ip = request.remote_addr
+
+        # -----------------------------------------
+        # RATE LIMIT (ANTI BRUTE FORCE)
+        # -----------------------------------------
+        if not can_attempt(ip):
+            return "Terlalu banyak percobaan login. Coba lagi nanti.", 429
+
+        # -----------------------------------------
+        # VERIFIKASI LOGIN
+        # -----------------------------------------
+        if verify_login(username, password):
+            reset_fail(ip)
+            login_user(username)
+
+            # 🔴 INI BAGIAN PENTING (2.3)
+            if must_change_password(username):
+                return redirect("/change-password")
+
             return redirect("/dashboard")
 
+        # LOGIN GAGAL
+        register_fail(ip)
         return "Login gagal"
 
     return render_template("login.html")
-
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
