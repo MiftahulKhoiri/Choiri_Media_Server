@@ -38,3 +38,20 @@ def change_role():
         request.form["role"]
     )
     return redirect("/admin/users")
+
+@admin_bp.route("/add-user", methods=["GET", "POST"])
+@root_required
+def add_user():
+    if request.method == "POST":
+        try:
+            create_user_by_admin(
+                request.form["username"],
+                request.form["password"],
+                request.form["role"]
+            )
+            flash("User berhasil dibuat", "success")
+            return redirect("/admin/users")
+        except ValueError as e:
+            flash(str(e), "error")
+
+    return render_template("admin_add_user.html")
