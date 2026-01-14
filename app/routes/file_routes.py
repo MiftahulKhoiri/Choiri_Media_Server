@@ -65,3 +65,14 @@ def preview_file(filename):
         filename,
         as_attachment=False
     )
+
+@file_bp.route("/delete/<filename>")
+@login_required
+def delete_file(filename):
+    try:
+        delete_user_file(current_user(), filename)
+        flash("File dihapus", "success")
+    except Exception as e:
+        flash(str(e), "error")
+
+    return redirect("/files")
