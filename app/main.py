@@ -18,7 +18,9 @@ from app.services.auth_service import init_auth, bootstrap_root_user
 
 from app.routes.web import web_bp
 from app.routes.auth_routes import auth_bp
+from app.routes.file_routes import file_bp
 from app.routes.dashboard_routes import dashboard_bp
+
 
 
 # =====================================================
@@ -50,6 +52,7 @@ def create_app():
     # -------------------------------------------------
     app.register_blueprint(web_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(file_bp)
     app.register_blueprint(dashboard_bp)
 
     return app
