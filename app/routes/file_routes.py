@@ -76,3 +76,24 @@ def delete_file(filename):
         flash(str(e), "error")
 
     return redirect("/files")
+
+@file_bp.route("/rename/<filename>", methods=["GET", "POST"])
+@login_required
+def rename_file(filename):
+    if request.method == "POST":
+        new_name = request.form["new_name"]
+        try:
+            rename_user_file(
+                current_user(),
+                filename,
+                new_name
+            )
+            flash("File berhasil di-rename", "success")
+            return redirect("/files")
+        except Exception as e:
+            flash(str(e), "error")
+
+    return render_template(
+        "rename_file.html",
+        filename=filename
+    )
