@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Rename File{% endblock %}
+
+{% block content %}
+<h2>Rename File</h2>
+
+<form method="post">
+    <p>File lama: <b>{{ filename }}</b></p>
+
+    <input
+        type="text"
+        name="new_name"
+        placeholder="Nama file baru"
+        required
+    >
+
+    <button class="btn btn-primary">Rename</button>
+</form>
+
+<a href="/files">Kembali</a>
+{% endblock %}
