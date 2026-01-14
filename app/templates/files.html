@@ -19,15 +19,20 @@
 
 <ul>
 {% for f in files %}
-    <li>
-        {{ f }}
-        |
-        <a href="/files/preview/{{ f }}" target="_blank">Preview</a>
-        |
-        <a href="/files/download/{{ f }}">Download</a>
-        |
-        <a href="/files/rename/{{ f }}">Rename</a>
-        |
+    <li style="margin-bottom:10px">
+
+        {% if f.lower().endswith(('png','jpg','jpeg','gif')) %}
+            <img
+                src="/files/preview/{{ f }}"
+                style="max-width:120px; max-height:120px; display:block;"
+            >
+        {% endif %}
+
+        <b>{{ f }}</b><br>
+
+        <a href="/files/preview/{{ f }}" target="_blank">Preview</a> |
+        <a href="/files/download/{{ f }}">Download</a> |
+        <a href="/files/rename/{{ f }}">Rename</a> |
         <a href="/files/delete/{{ f }}"
            onclick="return confirm('Hapus file ini?')">
            Delete
