@@ -1,17 +1,19 @@
-from flask import Blueprint, request, redirect, render_template
+from flask import Blueprint, request, redirect, render_template, flash
 
 from app.services.auth_service import (
     verify_login,
     login_user,
-    register_user,
+    must_change_password,
 )
 
-from app.services.session_service import (
-    is_logged_in,
-    logout_session,
+from app.services.rate_limit_service import (
+    can_attempt,
+    register_fail,
+    reset_fail,
 )
 
 auth_bp = Blueprint("auth", __name__)
+
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -20,28 +22,27 @@ def login():
         password = request.form["password"]
         ip = request.remote_addr
 
-        # -----------------------------------------
-        # RATE LIMIT (ANTI BRUTE FORCE)
-        # -----------------------------------------
         if not can_attempt(ip):
-            return "Terlalu banyak percobaan login. Coba lagi nanti.", 429
+            flash("Terlalu banyak percobaan login. Coba lagi nanti.", "error")
+            return redirect("/login")
 
-        # -----------------------------------------
-        # VERIFIKASI LOGIN
-        # -----------------------------------------
         if verify_login(username, password):
             reset_fail(ip)
             login_user(username)
 
-            # 🔴 INI BAGIAN PENTING (2.3)
             if must_change_password(username):
+                flash(
+                    "Anda wajib mengganti password sebelum melanjutkan",
+                    "warning"
+                )
                 return redirect("/change-password")
 
+            flash("Login berhasil", "success")
             return redirect("/dashboard")
 
-        # LOGIN GAGAL
         register_fail(ip)
-        return "Login gagal"
+        flash("Username atau password salah", "error")
+        return redirect("/login")
 
     return render_template("login.html")
 
