@@ -76,3 +76,29 @@ def can_access_file(request_user, owner_user, is_root):
     if is_root:
         return True
     return request_user == owner_user
+
+def delete_user_file(username, filename):
+    user_dir = get_user_upload_dir(username)
+    path = os.path.join(user_dir, filename)
+
+    if not os.path.exists(path):
+        raise FileNotFoundError("File tidak ditemukan")
+
+    os.remove(path)
+
+
+def rename_user_file(username, old, new):
+    if not allowed_file(new):
+        raise ValueError("Tipe file tidak diizinkan")
+
+    user_dir = get_user_upload_dir(username)
+    old_path = os.path.join(user_dir, old)
+    new_path = os.path.join(user_dir, secure_filename(new))
+
+    if not os.path.exists(old_path):
+        raise FileNotFoundError("File tidak ditemukan")
+
+    if os.path.exists(new_path):
+        raise ValueError("Nama file sudah ada")
+
+    os.rename(old_path, new_path)
