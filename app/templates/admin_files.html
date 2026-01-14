@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Semua File{% endblock %}
+
+{% block content %}
+<h2>Semua File User</h2>
+
+{% for user, files in files.items() %}
+    <h4>User: {{ user }}</h4>
+    <ul>
+    {% for f in files %}
+        <li>{{ f }}</li>
+    {% else %}
+        <li>(kosong)</li>
+    {% endfor %}
+    </ul>
+{% endfor %}
+{% endblock %}
