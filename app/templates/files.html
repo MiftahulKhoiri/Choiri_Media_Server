@@ -21,10 +21,21 @@
 {% for f in files %}
     <li>
         {{ f }}
+        |
+        <a href="/files/preview/{{ f }}" target="_blank">Preview</a>
+        |
         <a href="/files/download/{{ f }}">Download</a>
+        |
+        <a href="/files/rename/{{ f }}">Rename</a>
+        |
+        <a href="/files/delete/{{ f }}"
+           onclick="return confirm('Hapus file ini?')">
+           Delete
+        </a>
     </li>
 {% else %}
     <li>Belum ada file</li>
 {% endfor %}
 </ul>
+
 {% endblock %}
