@@ -98,3 +98,29 @@ def rename_file(filename):
         "rename_file.html",
         filename=filename
     )
+
+@file_bp.route("/api/upload", methods=["POST"])
+@login_required
+def api_upload():
+    username = current_user()
+    subdir = request.form.get("dir", "")
+
+    file = request.files.get("file")
+    if not file:
+        return {
+            "status": "error",
+            "message": "File tidak ditemukan"
+        }, 400
+
+    try:
+        filename = save_user_file(file, username, subdir)
+        return {
+            "status": "ok",
+            "filename": filename,
+            "folder": subdir
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 400
