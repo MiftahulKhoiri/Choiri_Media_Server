@@ -12,4 +12,5 @@ class User:
     username: str
     password_hash: str
     role: str
+    must_change_password: int
     created_at: str
