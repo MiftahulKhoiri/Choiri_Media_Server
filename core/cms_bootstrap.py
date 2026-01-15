@@ -25,7 +25,7 @@ from core.cms_detect_os import detect
 from core.cms_bash_folder import ensure_app_folders
 from core.cms_virtual_ven import VirtualVenv
 from core.cms_requirements_installer import RequirementsInstaller
-from core.cms_update_git import GitAutoUpdater
+
 
 
 # =====================================================
@@ -82,16 +82,6 @@ def bootstrap_system(
         # -------------------------------------------------
         # 5️⃣ Pastikan Git
         # -------------------------------------------------
-        if ensure_git:
-            log.info("[STEP] Cek / Update Git")
-            git_result = GitAutoUpdater().update()
-
-            if git_result.get("updated"):
-                log.info(
-                    f"[OK] Git diupdate → {git_result.get('new_version')}"
-                )
-            else:
-                log.info("[OK] Git sudah versi terbaru")
 
         # -------------------------------------------------
         # 6️⃣ Virtual Environment
