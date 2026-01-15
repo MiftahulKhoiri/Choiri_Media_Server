@@ -66,15 +66,19 @@ def get_user_by_username(username) -> Optional[User]:
     cur = conn.cursor()
 
     cur.execute(
-        "SELECT id, username, password_hash, role, created_at FROM users WHERE username = ?",
-        (username,)
-    )
-
-    row = cur.fetchone()
-    conn.close()
-
-    if not row:
-        return None
+    """
+    SELECT
+        id,
+        username,
+        password_hash,
+        role,
+        must_change_password,
+        created_at
+    FROM users
+    WHERE username = ?
+    """,
+    (username,)
+)
 
     return User(*row)
 
