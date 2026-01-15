@@ -22,6 +22,7 @@ from app.routes.auth_routes import auth_bp
 from app.routes.file_routes import file_bp
 from app.routes.dashboard_routes import dashboard_bp
 from app.routes.api_routes import api_bp
+from app.routes.password_routes import password_bp
 
 
 # =====================================================
@@ -57,6 +58,7 @@ def create_app():
     app.register_blueprint(file_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(password_bp)
 
     return app
 
