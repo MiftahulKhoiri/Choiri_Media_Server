@@ -42,10 +42,8 @@ log = get_logger("CMS_MAIN")
 # =====================================================
 
 def restart_self():
-    """
-    Restart cms.py (dipakai setelah update Git)
-    """
-    log.info("Restart CMS setelah update Git")
+    """Restart cms.py setelah update kode"""
+    log.info("Restart CMS untuk pakai kode terbaru")
     os.execv(sys.executable, [sys.executable] + sys.argv)
 
 
@@ -64,6 +62,13 @@ def main():
     log.info("=" * 60)
 
     # -------------------------------------------------
+    # 0️⃣ AUTO UPDATE SOURCE CODE (PALING AWAL)
+    # -------------------------------------------------
+    updater = SelfUpdater(BASE_DIR)
+    if updater.update_if_needed():
+        restart_self()
+
+    # -------------------------------------------------
     # 1️⃣ Cek sistem
     # -------------------------------------------------
     os_info = detect()
@@ -80,16 +85,7 @@ def main():
         sys.exit(1)
 
     # -------------------------------------------------
-    # 3️⃣ Update Git
-    # -------------------------------------------------
-    updater = SelfUpdater(BASE_DIR)
-
-if updater.update_if_needed():
-    log.info("Restart CMS untuk pakai kode terbaru")
-    os.execv(sys.executable, [sys.executable] + sys.argv)
-
-    # -------------------------------------------------
-    # 4️⃣ Install requirements.txt
+    # 3️⃣ Install requirements.txt
     # -------------------------------------------------
     req_file = BASE_DIR / "requirements.txt"
     if req_file.exists():
@@ -101,7 +97,7 @@ if updater.update_if_needed():
         log.warning("requirements.txt tidak ditemukan (skip)")
 
     # -------------------------------------------------
-    # 5️⃣ Jalankan Flask app
+    # 4️⃣ Jalankan Flask app
     # -------------------------------------------------
     main_app = APP_DIR / "main.py"
     if not main_app.exists():
@@ -112,7 +108,7 @@ if updater.update_if_needed():
 
     env = os.environ.copy()
 
-    # 🔑 INI KUNCI UTAMA (FIX ERROR core)
+    # 🔑 AGAR core/ dan app/ TERBACA
     env["PYTHONPATH"] = str(BASE_DIR)
 
     # virtualenv context
