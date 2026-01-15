@@ -27,7 +27,7 @@ from core.cms_detect_os import detect
 from core.cms_logger import get_logger
 from core.cms_paths import VENV_DIR, VENV_PYTHON
 from core.cms_virtual_ven import VirtualVenv
-from core.cms_update_git import GitAutoUpdater
+from core.cms_self_updater import SelfUpdater
 from core.cms_requirements_installer import RequirementsInstaller
 
 # =====================================================
@@ -82,11 +82,11 @@ def main():
     # -------------------------------------------------
     # 3️⃣ Update Git
     # -------------------------------------------------
-    git_result = GitAutoUpdater().update()
+    updater = SelfUpdater(BASE_DIR)
 
-    if git_result.get("updated"):
-        log.info("Git diupdate, restart CMS")
-        restart_self()
+if updater.update_if_needed():
+    log.info("Restart CMS untuk pakai kode terbaru")
+    os.execv(sys.executable, [sys.executable] + sys.argv)
 
     # -------------------------------------------------
     # 4️⃣ Install requirements.txt
