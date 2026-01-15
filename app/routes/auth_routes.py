@@ -6,6 +6,8 @@ from app.services.auth_service import (
     must_change_password,
 )
 
+from app.services.audit_service import log_logout
+
 from app.services.rate_limit_service import (
     can_attempt,
     register_fail,
@@ -57,8 +59,10 @@ def register():
 
     return render_template("register.html")
 
-
 @auth_bp.route("/logout")
 def logout():
+    user = current_user()
     logout_session()
+    if user:
+        log_logout(user, request.remote_addr)
     return redirect("/")
