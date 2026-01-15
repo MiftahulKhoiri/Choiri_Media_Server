@@ -27,7 +27,7 @@ from core.cms_detect_os import detect
 from core.cms_logger import get_logger
 from core.cms_paths import VENV_DIR, VENV_PYTHON
 from core.cms_virtual_ven import VirtualVenv
-from core.cms_self_updater import SelfUpdater
+from core.cms_updater_git.py import SelfUpdater
 from core.cms_requirements_installer import RequirementsInstaller
 
 # =====================================================
