@@ -1,242 +1,61 @@
 """
-cms_update_git.py
-Git Auto Updater (production-ready)
+cms_self_updater.py
+Auto update source code CMS dari GitHub
 """
 
 import os
-import shutil
 import subprocess
-import tempfile
-from pathlib import Path
-from packaging.version import Version
+import sys
 
-from core.cms_detect_os import detect
 from core.cms_logger import get_logger
-from core.cms_errors import (
-    CMSDependencyError,
-    CMSPermissionError,
-)
 
-# =====================================================
-# LOGGER
-# =====================================================
-
-log = get_logger("CMS_GIT")
+log = get_logger("CMS_SELF_UPDATE")
 
 
-class GitAutoUpdater:
-    """
-    Git Auto Updater
-    - Auto skip jika Git sudah versi terbaru
-    - Support Termux, Raspberry Pi, Linux PC
-    """
+class SelfUpdater:
+    def __init__(self, repo_dir):
+        self.repo_dir = repo_dir
 
-    REPO_URL = "https://github.com/git/git.git"
+    def _run(self, cmd):
+        return subprocess.check_output(
+            cmd,
+            cwd=self.repo_dir,
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
 
-    def __init__(self, prefix=None):
-        self.os_name = detect()
-        self.is_termux = self.os_name == "Linux Termux"
-        self.prefix = prefix or self._detect_prefix()
-        self.workdir = Path(tempfile.mkdtemp(prefix="git_auto_"))
-        self.source_dir = self.workdir / "git"
-        self.current_version = self._get_installed_git_version()
+    def get_local_commit(self):
+        return self._run(["git", "rev-parse", "HEAD"])
 
-    # =====================================================
-    # UTIL
-    # =====================================================
+    def get_remote_commit(self):
+        self._run(["git", "fetch", "origin"])
+        return self._run(["git", "rev-parse", "origin/main"])
 
-    def _run(self, cmd, cwd=None):
-        log.debug(f">> {' '.join(cmd)}")
-        subprocess.run(cmd, cwd=cwd, check=True)
+    def update_if_needed(self) -> bool:
+        """
+        Return True jika update terjadi
+        """
+        try:
+            local = self.get_local_commit()
+            remote = self.get_remote_commit()
 
-    def _cmd_out(self, cmd):
-        return subprocess.check_output(cmd, text=True).strip()
+            log.info(f"Local commit  : {local[:8]}")
+            log.info(f"Remote commit : {remote[:8]}")
 
-    # =====================================================
-    # PREFIX
-    # =====================================================
+            if local == remote:
+                log.info("Kode sudah terbaru (skip)")
+                return False
 
-    def _detect_prefix(self):
-        if self.is_termux:
-            return os.environ.get(
-                "PREFIX",
-                "/data/data/com.termux/files/usr"
+            log.warning("Update kode terdeteksi, pull dari GitHub")
+            subprocess.run(
+                ["git", "pull", "--rebase"],
+                cwd=self.repo_dir,
+                check=True
             )
-        return "/usr/local"
 
-    # =====================================================
-    # VERSION
-    # =====================================================
+            log.info("Update kode selesai")
+            return True
 
-    def _get_installed_git_version(self):
-        try:
-            out = self._cmd_out(["git", "--version"])
-            return out.split()[-1]
-        except Exception:
-            return None
-
-    def _get_latest_git_version(self):
-        """
-        Ambil versi Git terbaru TANPA clone repo
-        Aman untuk tag non-numeric (rc, alpha, dll)
-        """
-        try:
-            out = self._cmd_out([
-                "git", "ls-remote",
-                "--tags", "--refs",
-                self.REPO_URL
-            ])
         except Exception as e:
-            raise CMSDependencyError(
-                "Gagal mengambil versi Git terbaru"
-            ) from e
-
-        versions = []
-
-        for line in out.splitlines():
-            ref = line.split()[-1]
-            if not ref.startswith("refs/tags/v"):
-                continue
-
-            raw_version = ref.split("/")[-1][1:]  # hapus 'v'
-
-            try:
-                versions.append(Version(raw_version))
-            except Exception:
-                # skip tag aneh (rc, windows, dll)
-                continue
-
-        if not versions:
-            raise CMSDependencyError(
-                "Tidak ditemukan versi Git valid"
-            )
-
-        return str(max(versions))
-
-    def _is_latest(self, installed, latest):
-        return installed == latest
-
-    # =====================================================
-    # DEPENDENCIES
-    # =====================================================
-
-    def _install_dependencies(self):
-        if self.is_termux:
-            log.info("Install dependency Git (Termux)")
-            self._run([
-                "pkg", "install", "-y",
-                "git", "make", "clang",
-                "openssl", "libcurl",
-                "zlib", "gettext"
-            ])
-            return
-
-        # Linux non-Termux wajib root
-        if os.geteuid() != 0:
-            raise CMSPermissionError(
-                "Update Git membutuhkan akses root (sudo)"
-            )
-
-        log.info("Install dependency Git (Linux)")
-        self._run(["apt-get", "update"])
-        self._run([
-            "apt-get", "install", "-y",
-            "build-essential",
-            "libssl-dev",
-            "libcurl4-gnutls-dev",
-            "libexpat1-dev",
-            "gettext",
-            "zlib1g-dev",
-            "autoconf"
-        ])
-
-    # =====================================================
-    # BUILD
-    # =====================================================
-
-    def _build_and_install(self):
-        log.info("Clone source Git")
-        self._run([
-            "git", "clone", "--depth", "1",
-            self.REPO_URL,
-            str(self.source_dir)
-        ])
-
-        if (self.source_dir / "configure.ac").exists():
-            self._run(
-                ["make", "configure"],
-                cwd=self.source_dir
-            )
-
-        log.info("Build Git")
-        self._run(
-            ["./configure", f"--prefix={self.prefix}"],
-            cwd=self.source_dir
-        )
-        self._run(
-            ["make", f"-j{os.cpu_count()}"],
-            cwd=self.source_dir
-        )
-
-        log.info("Install Git")
-        self._run(
-            ["make", "install"],
-            cwd=self.source_dir
-        )
-
-    # =====================================================
-    # CLEANUP
-    # =====================================================
-
-    def _cleanup(self):
-        if self.workdir.exists():
-            shutil.rmtree(self.workdir, ignore_errors=True)
-
-    # =====================================================
-    # PUBLIC API
-    # =====================================================
-
-    def update(self) -> dict:
-        """
-        Update Git jika perlu.
-        Return dict status.
-        """
-        result = {
-            "installed": self.current_version,
-            "latest": None,
-            "updated": False,
-            "prefix": self.prefix,
-        }
-
-        log.info("Cek versi Git")
-
-        try:
-            latest = self._get_latest_git_version()
-            result["latest"] = latest
-
-            log.info(
-                f"Git installed : {self.current_version or 'not installed'}"
-            )
-            log.info(f"Git latest    : {latest}")
-
-            if self.current_version and self._is_latest(
-                self.current_version, latest
-            ):
-                log.info("Git sudah versi terbaru (skip)")
-                return result
-
-            log.info("Update Git diperlukan")
-            self._install_dependencies()
-            self._build_and_install()
-
-            new_ver = self._cmd_out(
-                [f"{self.prefix}/bin/git", "--version"]
-            )
-            result["updated"] = True
-            result["new_version"] = new_ver
-
-            log.info(f"Git berhasil diupdate → {new_ver}")
-            return result
-
-        finally:
-            self._cleanup()
+            log.error(f"Gagal auto update kode: {e}")
+            return False
