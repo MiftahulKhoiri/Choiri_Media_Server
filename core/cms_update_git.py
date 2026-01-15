@@ -1,5 +1,5 @@
 """
-cms_self_updater.py
+cms_updater_git.py
 Auto update source code CMS dari GitHub
 """
 
