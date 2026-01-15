@@ -28,7 +28,7 @@ def login():
 
         if verify_login(username, password):
             reset_fail(ip)
-            login_user(username)
+            login_user(username, request.remote_addr)
 
             if must_change_password(username):
                 flash(
