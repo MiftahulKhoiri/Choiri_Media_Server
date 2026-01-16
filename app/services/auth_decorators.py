@@ -4,7 +4,7 @@ Decorator keamanan autentikasi & role
 """
 
 from functools import wraps
-from flask import redirect, url_for
+from flask import redirect, url_for, flash 
 
 from app.services.session_service import (
     is_logged_in,
@@ -25,14 +25,16 @@ def login_required(func):
 
 
 def root_required(func):
-    """
-    Pastikan user adalah root/admin
-    """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not is_logged_in():
-            return redirect(url_for("auth.login"))
-        if not is_root():
-            return "Akses ditolak (root only)", 403
+        if not session.get("logged_in"):
+            flash("Silakan login", "error")
+            return redirect("/login")
+
+        if session.get("role") != "root":
+            flash("Akses ditolak", "error")
+            return redirect("/dashboard")
+
         return func(*args, **kwargs)
+
     return wrapper
