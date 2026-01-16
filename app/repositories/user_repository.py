@@ -8,14 +8,14 @@ from typing import Optional
 
 from core.cms_bash_folder import DB_PATH
 from app.models.user_model import User
+from app.repositories.db import get_db
 
 
 # =====================================================
 # DB HELPER
 # =====================================================
 
-def _get_db():
-    return sqlite3.connect(DB_PATH)
+_get_db() → get_db()
 
 
 # =====================================================
