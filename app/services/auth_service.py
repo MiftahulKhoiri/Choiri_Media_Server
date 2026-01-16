@@ -16,6 +16,7 @@ from app.repositories.user_repository import (
     init_user_table,
     create_user,
     get_user_by_username,
+    reset_user_password,
 )
 
 from app.services.session_service import login_session
@@ -158,3 +159,17 @@ def create_user_by_admin(username, password, role):
         created_at=created_at,
         must_change_password=1  # user WAJIB ganti password saat login pertama
     )
+
+def reset_password_by_admin(username, new_password):
+    if not new_password or len(new_password) < 8:
+        raise ValueError("Password minimal 8 karakter")
+
+    user = get_user_by_username(username)
+    if not user:
+        raise ValueError("User tidak ditemukan")
+
+    if user.username == "root":
+        raise ValueError("Password root tidak boleh di-reset dari sini")
+
+    password_hash = generate_password_hash(new_password)
+    reset_user_password(username, password_hash)
