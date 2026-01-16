@@ -1,4 +1,4 @@
-Flask>=2.2,<3.0
+0Flask>=2.2,<3.0
 Werkzeug>=2.2
 packaging>=23.0
-flask-wtf
+Flask-WTF
