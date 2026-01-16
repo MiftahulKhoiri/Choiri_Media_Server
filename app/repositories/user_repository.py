@@ -22,7 +22,7 @@ from app.repositories.db import get_db
 # =====================================================
 
 def init_user_table():
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute("""
@@ -51,7 +51,7 @@ def create_user(
     created_at,
     must_change_password=0
 ):
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
@@ -78,7 +78,7 @@ def create_user(
 # =====================================================
 
 def get_user_by_username(username):
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
@@ -111,7 +111,7 @@ def get_user_by_username(username):
 # =====================================================
 
 def list_users():
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
@@ -124,7 +124,7 @@ def list_users():
 
 
 def delete_user(username):
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
@@ -137,7 +137,7 @@ def delete_user(username):
 
 
 def update_user_role(username, role):
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
@@ -150,7 +150,7 @@ def update_user_role(username, role):
 
 
 def update_password(username, password_hash, force_change=0):
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
@@ -166,7 +166,7 @@ def update_password(username, password_hash, force_change=0):
     conn.close()
 
 def set_user_active(username, active: bool):
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
@@ -185,7 +185,7 @@ def reset_user_password(username, password_hash):
     """
     Reset password user & paksa ganti password saat login berikutnya
     """
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute(
@@ -201,7 +201,7 @@ def reset_user_password(username, password_hash):
     conn.close()
 
 def migrate_users_table():
-    conn = _get_db()
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute("PRAGMA table_info(users)")
