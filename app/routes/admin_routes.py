@@ -10,6 +10,7 @@ from app.repositories.user_repository import (
     list_users,
     delete_user,
     update_user_role,
+    set_user_active,
 )
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -77,3 +78,16 @@ def login_history():
         "admin_login_history.html",
         logs=read_auth_logs()
     )
+
+@admin_bp.route("/lock/<username>", methods=["POST"])
+@root_required
+def lock_user(username):
+    if username == "root":
+        flash("User root tidak boleh dikunci", "error")
+        return redirect("/admin/users")
+
+    set_user_active(username, False)
+    log_admin_action(current_user(), "lock_user", username)
+
+    flash("User berhasil dikunci", "success")
+    return redirect("/admin/users")
