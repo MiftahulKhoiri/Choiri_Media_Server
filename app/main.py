@@ -13,6 +13,7 @@ from core.cms_bootstrap import bootstrap_system
 
 from app.services.auth_service import init_auth, bootstrap_root_user
 from app.services.api_token_service import init_api_token
+from app.repositories.user_repository import init_user_table
 
 # =====================================================
 # ROUTES
