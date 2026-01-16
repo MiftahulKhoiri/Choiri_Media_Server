@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request, redirect
 
+from app.services.admin_audit_service import log_admin_action
+from app.services.session_service import current_user
 from app.services.auth_decorators import root_required
 from app.services.audit_reader_service import read_auth_logs
 
@@ -29,6 +31,11 @@ def users():
 @root_required
 def delete(username):
     delete_user(username)
+    log_admin_action(
+        admin=current_user(),
+        action="delete_user",
+        target=username
+    )
     return redirect("/admin/users")
 
 
