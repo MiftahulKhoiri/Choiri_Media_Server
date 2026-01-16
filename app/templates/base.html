@@ -3,11 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}CMS{% endblock %}</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        {% block content %}{% endblock %}
+
+    <!-- HEADER -->
+    <header class="header">
+        <h1>Choiri Media Server</h1>
+
+        {% if session.get("logged_in") %}
+            <div class="user-info">
+                Login sebagai: <strong>{{ session.get("username") }}</strong>
+                ({{ session.get("role") }})
+            </div>
+        {% endif %}
+    </header>
+
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+        {% if session.get("logged_in") %}
+        <aside class="sidebar">
+
+            <nav>
+                <a href="/dashboard">🏠 Dashboard</a>
+                <a href="/files">📁 Files</a>
+
+                {% if session.get("role") == "root" %}
+                    <hr>
+                    <div class="menu-title">Admin</div>
+                    <a href="/admin/users">👥 User Management</a>
+                    <a href="/admin/add-user">➕ Tambah User</a>
+                    <a href="/admin/login-history">📜 Login History</a>
+                {% endif %}
+
+                <hr>
+                <a href="/logout" class="logout">🚪 Logout</a>
+            </nav>
+
+        </aside>
+        {% endif %}
+
+        <!-- MAIN CONTENT -->
+        <main class="content">
+
+            <!-- FLASH MESSAGE -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+
     </div>
+
 </body>
 </html>
