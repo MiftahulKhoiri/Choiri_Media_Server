@@ -2,6 +2,7 @@
 auth_service.py
 Business logic autentikasi
 """
+
 import os
 from datetime import datetime
 from getpass import getpass
@@ -120,3 +121,36 @@ def bootstrap_root_user():
 def must_change_password(username):
     user = get_user_by_username(username)
     return user.must_change_password == 1
+
+
+# =====================================================
+# ADMIN SERVICE
+# =====================================================
+
+def create_user_by_admin(username, password, role):
+    """
+    Buat user oleh admin/root
+    """
+
+    if not username or not password or not role:
+        raise ValueError("Semua field wajib diisi")
+
+    if role not in ("user", "root"):
+        raise ValueError("Role tidak valid")
+
+    if len(password) < 8:
+        raise ValueError("Password minimal 8 karakter")
+
+    if get_user_by_username(username):
+        raise ValueError("Username sudah ada")
+
+    password_hash = generate_password_hash(password)
+    created_at = datetime.utcnow().isoformat()
+
+    create_user(
+        username=username,
+        password_hash=password_hash,
+        role=role,
+        created_at=created_at,
+        must_change_password=1  # user WAJIB ganti password saat login pertama
+    )
