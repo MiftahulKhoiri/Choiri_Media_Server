@@ -41,12 +41,15 @@ def verify_login(username, password) -> bool:
 
     return check_password_hash(user.password_hash, password)
 
-def login_user(username, ip_address=None) -> bool:
+def login_user(username, ip_address=None):
     user = get_user_by_username(username)
     if not user:
         return False
 
-    login_session(user.username, user.role)
+    session["username"] = user.username
+    session["role"] = user.role
+    session["logged_in"] = True
+
     log_login(user.username, ip_address)
     return True
 
