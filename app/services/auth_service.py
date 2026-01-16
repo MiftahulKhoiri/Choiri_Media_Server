@@ -48,9 +48,12 @@ def login_user(username, ip_address=None):
     if not user:
         return False
 
+    if not user.is_active:
+        raise ValueError("Akun Anda telah dikunci oleh admin")
+
+    session["logged_in"] = True
     session["username"] = user.username
     session["role"] = user.role
-    session["logged_in"] = True
 
     log_login(user.username, ip_address)
     return True
