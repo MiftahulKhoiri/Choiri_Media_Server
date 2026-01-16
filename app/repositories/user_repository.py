@@ -164,3 +164,19 @@ def update_password(username, password_hash, force_change=0):
 
     conn.commit()
     conn.close()
+
+def set_user_active(username, active: bool):
+    conn = _get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        UPDATE users
+        SET is_active = ?
+        WHERE username = ?
+        """,
+        (1 if active else 0, username)
+    )
+
+    conn.commit()
+    conn.close()
