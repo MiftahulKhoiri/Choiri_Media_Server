@@ -6,6 +6,7 @@
 
 <div style="margin-bottom: 15px;">
     <a href="/admin/dashboard">📊 Admin Dashboard</a>
+    |
     <a href="/admin/add-user" class="btn btn-primary">
         + Tambah User
     </a>
@@ -37,19 +38,22 @@
         <td>
             {% if u.username != "root" %}
 
-                <!-- LOCK / UNLOCK -->
+                <!-- LOCK -->
                 {% if u.is_active %}
                     <form method="post"
                           action="/admin/lock/{{ u.username }}"
                           style="display:inline;">
+                        {{ csrf_token() }}
                         <button onclick="return confirm('Kunci user ini?')">
                             Lock
                         </button>
                     </form>
                 {% else %}
+                    <!-- UNLOCK -->
                     <form method="post"
                           action="/admin/unlock/{{ u.username }}"
                           style="display:inline;">
+                        {{ csrf_token() }}
                         <button>
                             Unlock
                         </button>
@@ -60,6 +64,7 @@
                 <form method="post"
                       action="/admin/delete/{{ u.username }}"
                       style="display:inline;">
+                    {{ csrf_token() }}
                     <button onclick="return confirm('Hapus user ini?')">
                         Delete
                     </button>
