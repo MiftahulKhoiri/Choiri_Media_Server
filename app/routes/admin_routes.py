@@ -38,14 +38,20 @@ def delete(username):
     )
     return redirect("/admin/users")
 
-
 @admin_bp.route("/role", methods=["POST"])
 @root_required
 def change_role():
-    update_user_role(
-        request.form["username"],
-        request.form["role"]
+    username = request.form["username"]
+    role = request.form["role"]
+
+    update_user_role(username, role)
+
+    log_admin_action(
+        admin=current_user(),
+        action="change_role",
+        target=f"{username}:{role}"
     )
+
     return redirect("/admin/users")
 
 @admin_bp.route("/add-user", methods=["GET", "POST"])
@@ -58,8 +64,16 @@ def add_user():
                 request.form["password"],
                 request.form["role"]
             )
+
+            log_admin_action(
+                admin=current_user(),
+                action="create_user",
+                target=request.form["username"]
+            )
+
             flash("User berhasil dibuat", "success")
             return redirect("/admin/users")
+
         except ValueError as e:
             flash(str(e), "error")
 
