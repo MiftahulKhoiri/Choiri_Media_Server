@@ -1,32 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Admin - Users{% endblock %}
+{% block title %}Admin - User Management{% endblock %}
 
 {% block content %}
 <h2>User Management</h2>
 
-<a href="/admin/login-history">Login History</a>
+<div style="margin-bottom: 15px;">
+    <a href="/admin/add-user" class="btn btn-primary">
+        + Tambah User
+    </a>
+    |
+    <a href="/admin/login-history">
+        Login History
+    </a>
+</div>
 
-<a href="/admin/add-user" class="btn btn-primary">
-    + Tambah User
-</a>
+<table border="1" width="100%" cellpadding="8">
+    <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
 
-<table border="1" width="100%">
-<tr>
-    <th>Username</th>
-    <th>Role</th>
-    <th>Action</th>
-</tr>
+    {% for u in users %}
+    <tr>
+        <td>{{ u.username }}</td>
+        <td>{{ u.role }}</td>
+        <td>
+            {% if u.is_active %}
+                <span style="color:green;">Aktif</span>
+            {% else %}
+                <span style="color:red;">Dikunci</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if u.username != "root" %}
 
-{% for u in users %}
-<tr>
-    <td>{{ u[1] }}</td>
-    <td>{{ u[2] }}</td>
-    <td>
-        {% if u[1] != 'root' %}
-            <a href="/admin/delete/{{ u[1] }}">Delete</a>
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
+                <!-- LOCK / UNLOCK -->
+                {% if u.is_active %}
+                    <form method="post"
+                          action="/admin/lock/{{ u.username }}"
+                          style="display:inline;">
+                        <button onclick="return confirm('Kunci user ini?')">
+                            Lock
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="post"
+                          action="/admin/unlock/{{ u.username }}"
+                          style="display:inline;">
+                        <button>
+                            Unlock
+                        </button>
+                    </form>
+                {% endif %}
+
+                <!-- DELETE -->
+                <form method="post"
+                      action="/admin/delete/{{ u.username }}"
+                      style="display:inline;">
+                    <button onclick="return confirm('Hapus user ini?')">
+                        Delete
+                    </button>
+                </form>
+
+            {% else %}
+                <em>Protected</em>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
 </table>
 {% endblock %}
