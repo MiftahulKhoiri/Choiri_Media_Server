@@ -43,3 +43,6 @@ def is_root():
 
 def current_user():
     return session.get("user")
+
+def current_role():
+    return session.get("role")
