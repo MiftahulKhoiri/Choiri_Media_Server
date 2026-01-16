@@ -180,3 +180,22 @@ def set_user_active(username, active: bool):
 
     conn.commit()
     conn.close()
+
+def reset_user_password(username, password_hash):
+    """
+    Reset password user & paksa ganti password saat login berikutnya
+    """
+    conn = _get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        UPDATE users
+        SET password_hash = ?, must_change_password = 1
+        WHERE username = ?
+        """,
+        (password_hash, username)
+    )
+
+    conn.commit()
+    conn.close()
