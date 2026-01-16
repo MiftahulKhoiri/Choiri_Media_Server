@@ -78,7 +78,7 @@ def create_user(
 # GET USER
 # =====================================================
 
-def get_user_by_username(username) -> Optional[User]:
+def get_user_by_username(username):
     conn = _get_db()
     cur = conn.cursor()
 
@@ -89,6 +89,7 @@ def get_user_by_username(username) -> Optional[User]:
             username,
             password_hash,
             role,
+            is_active,
             must_change_password,
             created_at
         FROM users
@@ -97,7 +98,7 @@ def get_user_by_username(username) -> Optional[User]:
         (username,)
     )
 
-    row = cur.fetchone()   # ✅ INI YANG HILANG
+    row = cur.fetchone()
     conn.close()
 
     if not row:
