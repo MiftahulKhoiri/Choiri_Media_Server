@@ -15,6 +15,7 @@ from app.repositories.user_repository import (
     update_user_role,
     set_user_active,
 )
+from app.repositories.stats_repository import user_stats
 from app.services.roles import ROLES
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -130,4 +131,12 @@ def reset_password(username):
     return render_template(
         "admin_reset_password.html",
         username=username
+    )
+
+@admin_bp.route("/dashboard")
+@root_required
+def admin_dashboard():
+    return render_template(
+        "admin_dashboard.html",
+        stats=user_stats()
     )
