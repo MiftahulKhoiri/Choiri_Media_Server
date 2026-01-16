@@ -15,10 +15,11 @@ from app.repositories.user_repository import (
     update_user_role,
     set_user_active,
 )
+from app.services.roles import ROLES
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
-ALLOWED_ROLES = {"user", "root"}
+ALLOWED_ROLES = ROLES
 
 
 @admin_bp.route("/users")
