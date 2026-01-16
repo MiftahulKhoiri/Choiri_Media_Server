@@ -91,3 +91,12 @@ def lock_user(username):
 
     flash("User berhasil dikunci", "success")
     return redirect("/admin/users")
+
+@admin_bp.route("/unlock/<username>", methods=["POST"])
+@root_required
+def unlock_user(username):
+    set_user_active(username, True)
+    log_admin_action(current_user(), "unlock_user", username)
+
+    flash("User berhasil dibuka", "success")
+    return redirect("/admin/users")
