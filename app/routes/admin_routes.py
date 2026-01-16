@@ -4,7 +4,10 @@ from app.services.admin_audit_service import log_admin_action
 from app.services.session_service import current_user
 from app.services.auth_decorators import root_required
 from app.services.audit_reader_service import read_auth_logs
-from app.services.auth_service import create_user_by_admin
+from app.services.auth_service import (
+    create_user_by_admin,
+    reset_password_by_admin,
+)
 
 from app.repositories.user_repository import (
     list_users,
@@ -100,3 +103,30 @@ def unlock_user(username):
 
     flash("User berhasil dibuka", "success")
     return redirect("/admin/users")
+
+@admin_bp.route("/reset-password/<username>", methods=["GET", "POST"])
+@root_required
+def reset_password(username):
+    if request.method == "POST":
+        try:
+            reset_password_by_admin(
+                username,
+                request.form["password"]
+            )
+
+            log_admin_action(
+                current_user(),
+                "reset_password",
+                username
+            )
+
+            flash("Password user berhasil di-reset", "success")
+            return redirect("/admin/users")
+
+        except ValueError as e:
+            flash(str(e), "error")
+
+    return render_template(
+        "admin_reset_password.html",
+        username=username
+    )
