@@ -39,7 +39,7 @@ def init_user_table():
 
     conn.commit()
     conn.close()
-
+    migrate_users_table()
 
 # =====================================================
 # CREATE USER
@@ -108,7 +108,7 @@ def get_user_by_username(username):
 
 
 # =====================================================
-# LIST / UPDATE / DELETE
+# LIST / UPDATE / DELETE / migration 
 # =====================================================
 
 def list_users():
@@ -197,6 +197,26 @@ def reset_user_password(username, password_hash):
         """,
         (password_hash, username)
     )
+
+    conn.commit()
+    conn.close()
+
+def migrate_users_table():
+    conn = _get_db()
+    cur = conn.cursor()
+
+    cur.execute("PRAGMA table_info(users)")
+    columns = [row[1] for row in cur.fetchall()]
+
+    if "is_active" not in columns:
+        cur.execute(
+            "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1"
+        )
+
+    if "must_change_password" not in columns:
+        cur.execute(
+            "ALTER TABLE users ADD COLUMN must_change_password INTEGER DEFAULT 0"
+        )
 
     conn.commit()
     conn.close()
