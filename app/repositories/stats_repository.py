@@ -1,3 +1,5 @@
+from app.repositories.db import get_db
+
 def user_stats():
     conn = _get_db()
     cur = conn.cursor()
