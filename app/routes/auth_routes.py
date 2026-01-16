@@ -6,6 +6,8 @@ from app.services.auth_service import (
     must_change_password,
 )
 
+from app.services.session_service import current_user
+
 from app.repositories.user_repository import get_user_by_username
 
 from app.services.audit_service import log_logout
