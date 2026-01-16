@@ -38,3 +38,18 @@ def root_required(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+def role_required(*allowed_roles):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not session.get("logged_in"):
+                return redirect("/login")
+
+            if session.get("role") not in allowed_roles:
+                flash("Akses ditolak", "error")
+                return redirect("/dashboard")
+
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
