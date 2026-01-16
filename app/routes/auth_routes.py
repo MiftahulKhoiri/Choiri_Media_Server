@@ -6,7 +6,10 @@ from app.services.auth_service import (
     must_change_password,
 )
 
-from app.services.session_service import current_user
+from app.services.session_service import (
+    current_user,
+    logout_session,
+)
 
 from app.repositories.user_repository import get_user_by_username
 
@@ -79,7 +82,10 @@ def register():
 @auth_bp.route("/logout")
 def logout():
     user = current_user()
-    logout_session()
+
     if user:
-        log_logout(user, request.remote_addr)
-    return redirect("/")
+        log_logout(user)
+
+    logout_session()
+    flash("Anda berhasil logout", "success")
+    return redirect("/login")
