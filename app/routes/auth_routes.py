@@ -6,6 +6,8 @@ from app.services.auth_service import (
     must_change_password,
 )
 
+from app.repositories.user_repository import get_user_by_username
+
 from app.services.audit_service import log_logout
 
 from app.services.rate_limit_service import (
@@ -30,8 +32,11 @@ def login():
 
         if verify_login(username, password):
             reset_fail(ip)
-            login_user(username, request.remote_addr)
+            login_user(username, ip)
 
+            # =================================================
+            # FORCE CHANGE PASSWORD (PALING PRIORITAS)
+            # =================================================
             if must_change_password(username):
                 flash(
                     "Anda wajib mengganti password sebelum melanjutkan",
@@ -39,6 +44,16 @@ def login():
                 )
                 return redirect("/change-password")
 
+            # =================================================
+            # ROLE-BASED REDIRECT
+            # =================================================
+            user = get_user_by_username(username)
+
+            if user.role == "root":
+                flash("Selamat datang Admin", "success")
+                return redirect("/admin/users")
+
+            # default user
             flash("Login berhasil", "success")
             return redirect("/dashboard")
 
