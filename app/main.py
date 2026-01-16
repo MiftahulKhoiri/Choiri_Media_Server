@@ -50,7 +50,7 @@ def create_app():
     # INIT AUTH SYSTEM (DB, TABLE)
     # -------------------------------------------------
     init_auth()
-    
+    init_user_table()
     init_api_token()
     bootstrap_root_user()
 
