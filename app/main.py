@@ -50,8 +50,9 @@ def create_app():
     # INIT AUTH SYSTEM (DB, TABLE)
     # -------------------------------------------------
     init_auth()
-    bootstrap_root_user()
+    
     init_api_token()
+    bootstrap_root_user()
 
     # -------------------------------------------------
     # REGISTER BLUEPRINTS
