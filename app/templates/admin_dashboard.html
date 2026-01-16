@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2>Admin Dashboard</h2>
+
+<ul>
+    <li>Total User: {{ stats.total }}</li>
+    <li>User Aktif: {{ stats.active }}</li>
+    <li>User Dikunci: {{ stats.locked }}</li>
+</ul>
+{% endblock %}
